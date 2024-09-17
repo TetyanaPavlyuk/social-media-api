@@ -80,10 +80,10 @@ class Like(models.Model):
 
 class Message(models.Model):
     sender = models.ForeignKey(
-        Profile, on_delete=models.CASCADE, related_name="messages"
+        Profile, on_delete=models.CASCADE, related_name="sent_messages"
     )
     recipient = models.ForeignKey(
-        Profile, on_delete=models.CASCADE, related_name="messages"
+        Profile, on_delete=models.CASCADE, related_name="received_messages"
     )
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
