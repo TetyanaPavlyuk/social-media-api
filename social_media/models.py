@@ -16,10 +16,10 @@ def profile_image_path(instance: "Profile", filename: str) -> str:
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     nickname = models.CharField(max_length=255)
-    photo = models.ImageField(null=True, upload_to=profile_image_path)
+    photo = models.ImageField(null=True, blank=True, upload_to=profile_image_path)
     birth_date = models.DateField(null=True, blank=True)
     following = models.ManyToManyField(
-        "self", related_name="followers", symmetrical=False
+        "self", related_name="followers", symmetrical=False, null=True, blank=True
     )
 
     def __str__(self):
@@ -35,7 +35,7 @@ def post_image_path(instance: "Post", filename: str) -> str:
 class Post(models.Model):
     author = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="posts")
     content = models.TextField()
-    image = models.ImageField(null=True, upload_to=post_image_path)
+    image = models.ImageField(null=True, blank=True, upload_to=post_image_path)
     created_at = models.DateTimeField(auto_now_add=True)
 
     @property
