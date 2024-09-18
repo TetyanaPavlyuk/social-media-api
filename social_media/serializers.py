@@ -15,7 +15,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["id", "user", "nickname", "photo", "birth_date", "following", "followers"]
+        fields = ["id", "user", "nickname", "bio", "photo", "birth_date", "following", "followers"]
 
     def update(self, instance, validated_data):
         following_data = validated_data.get("following", None)
@@ -27,6 +27,12 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_followers(self, obj):
         return FollowSerializer(obj.followers.all(), many=True).data
+
+
+class ProfileImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ["id", "photo"]
 
 
 class PostSerializer(serializers.ModelSerializer):

@@ -9,17 +9,18 @@ from user.models import User
 
 def profile_image_path(instance: "Profile", filename: str) -> str:
     _, extention = os.path.splitext(filename)
-    filename = f"{slugify(instance.name)}-{uuid.uuid4()}{extention}"
+    filename = f"{slugify(instance.nickname)}-{uuid.uuid4()}{extention}"
     return os.path.join("uploads/profile/", filename)
 
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     nickname = models.CharField(max_length=255)
+    bio = models.TextField(blank=True)
     photo = models.ImageField(null=True, blank=True, upload_to=profile_image_path)
     birth_date = models.DateField(null=True, blank=True)
     following = models.ManyToManyField(
-        "self", related_name="followers", symmetrical=False, null=True, blank=True
+        "self", related_name="followers", symmetrical=False
     )
 
     def __str__(self):
@@ -28,7 +29,7 @@ class Profile(models.Model):
 
 def post_image_path(instance: "Post", filename: str) -> str:
     _, extention = os.path.splitext(filename)
-    filename = f"{slugify(instance.name)}-{uuid.uuid4()}{extention}"
+    filename = f"{slugify(instance.content[:10])}-{uuid.uuid4()}{extention}"
     return os.path.join("uploads/post/", filename)
 
 
