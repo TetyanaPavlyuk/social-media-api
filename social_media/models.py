@@ -73,9 +73,6 @@ class Like(models.Model):
     post = models.ForeignKey(
         Post, on_delete=models.CASCADE, null=True, blank=True, related_name="likes"
     )
-    comment = models.ForeignKey(
-        Comment, on_delete=models.CASCADE, null=True, blank=True, related_name="likes"
-    )
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="likes")
 
 

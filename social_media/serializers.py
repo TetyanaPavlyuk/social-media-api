@@ -50,7 +50,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
-        fields = ["id", "post", "comment", "owner"]
+        fields = ["id", "post", "owner"]
 
 
 class MessageSerializer(serializers.ModelSerializer):
