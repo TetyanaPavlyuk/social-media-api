@@ -1,6 +1,5 @@
 from rest_framework import mixins, status
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action, permission_classes
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -43,10 +42,13 @@ class ProfileViewSet(
             return ProfileImageSerializer
         return ProfileSerializer
 
+    def perform_create(self, serializer):
+        author = Profile.objects.get(user=self.request.user)
+        serializer.save(author=author)
+
     @action(
         methods=["POST"],
         detail=True,
-        # permission_classes=[IsAuthenticated],
         url_path="upload-image",
     )
     def upload_image(self, request, pk=None):
@@ -78,6 +80,10 @@ class PostViewSet(
                 "likes"
             ))
         return self.queryset
+
+    def perform_create(self, serializer):
+        author = Profile.objects.get(user=self.request.user)
+        serializer.save(author=author)
 
     @action(
         methods=["POST"],
@@ -115,6 +121,10 @@ class CommentViewSet(
                     )
         return self.queryset
 
+    def perform_create(self, serializer):
+        author = Profile.objects.get(user=self.request.user)
+        serializer.save(author=author)
+
 
 class MessageViewSet(
     mixins.CreateModelMixin,
@@ -131,3 +141,7 @@ class MessageViewSet(
         if self.action == "list":
             return self.queryset.select_related()
         return self.queryset
+
+    def perform_create(self, serializer):
+        author = Profile.objects.get(user=self.request.user)
+        serializer.save(author=author)

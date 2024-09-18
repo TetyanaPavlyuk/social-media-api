@@ -1,10 +1,9 @@
 import os
 import uuid
 
+from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
-
-from user.models import User
 
 
 def profile_image_path(instance: "Profile", filename: str) -> str:
@@ -14,7 +13,7 @@ def profile_image_path(instance: "Profile", filename: str) -> str:
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
     nickname = models.CharField(max_length=255)
     bio = models.TextField(blank=True)
     photo = models.ImageField(null=True, blank=True, upload_to=profile_image_path)

@@ -1,13 +1,12 @@
 from rest_framework import serializers
 
 from social_media.models import Profile, Post, Comment, Like, Message
-from user.serializers import UserSerializer
 
 
 class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ["id", "user", "nickname"]
+        fields = ["id", "nickname"]
 
 class ProfileSerializer(serializers.ModelSerializer):
     following = serializers.PrimaryKeyRelatedField(many=True, queryset=Profile.objects.all())
@@ -43,22 +42,22 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ["id", "author", "content", "image", "created_at", "like_count"]
+        fields = ["id", "content", "image", "created_at", "like_count"]
 
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ["id", "post", "author", "content", "created_at"]
+        fields = ["id", "post", "content", "created_at"]
 
 
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
-        fields = ["id", "post", "author"]
+        fields = ["id", "post"]
 
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ["id", "author", "recipient", "content", "created_at"]
+        fields = ["id", "recipient", "content", "created_at"]

@@ -143,4 +143,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "user.User"
 
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": (
+        "social_media.permissions.OwnerOrReadOnly",
+    ),
+}
+
 INTERNAL_IPS = ["127.0.0.1"]
