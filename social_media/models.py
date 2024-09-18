@@ -73,14 +73,14 @@ class Like(models.Model):
     post = models.ForeignKey(
         Post, on_delete=models.CASCADE, null=True, blank=True, related_name="likes"
     )
-    owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="likes")
+    author = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="likes")
 
     class Meta:
-        unique_together = (("post", "owner"),)
+        unique_together = (("post", "author"),)
 
 
 class Message(models.Model):
-    sender = models.ForeignKey(
+    author = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name="sent_messages"
     )
     recipient = models.ForeignKey(

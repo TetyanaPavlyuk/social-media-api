@@ -55,10 +55,10 @@ class CommentSerializer(serializers.ModelSerializer):
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Like
-        fields = ["id", "post", "owner"]
+        fields = ["id", "post", "author"]
 
 
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        fields = ["id", "sender", "recipient", "content", "created_at"]
+        fields = ["id", "author", "recipient", "content", "created_at"]

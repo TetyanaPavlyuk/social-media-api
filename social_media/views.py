@@ -10,7 +10,6 @@ from social_media.serializers import (
     ProfileImageSerializer,
     PostSerializer,
     CommentSerializer,
-    LikeSerializer,
     MessageSerializer,
 )
 
@@ -88,9 +87,9 @@ class PostViewSet(
     def like(self, request, pk=None):
         post = self.get_object()
         user = request.user
-        owner = Profile.objects.get(user=user)
+        author = Profile.objects.get(user=user)
 
-        like, created = Like.objects.get_or_create(owner=owner, post=post)
+        like, created = Like.objects.get_or_create(author=author, post=post)
 
         if not created:
             like.delete()
