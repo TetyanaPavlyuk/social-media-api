@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from social_media.models import Profile, Post, Comment, Like, Message
+from social_media.permissions import OwnerOrReadOnlyProfile, OwnerOrReadOnly
 from social_media.serializers import (
     ProfileSerializer,
     ProfileImageSerializer,
@@ -23,6 +24,7 @@ class ProfileViewSet(
 ):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+    permission_classes = (OwnerOrReadOnlyProfile,)
 
     def get_queryset(self):
         if self.action == "list":
@@ -43,8 +45,7 @@ class ProfileViewSet(
         return ProfileSerializer
 
     def perform_create(self, serializer):
-        author = Profile.objects.get(user=self.request.user)
-        serializer.save(author=author)
+        serializer.save(user=self.request.user)
 
     @action(
         methods=["POST"],
@@ -70,6 +71,7 @@ class PostViewSet(
 ):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    permission_classes(OwnerOrReadOnly, )
 
     def get_queryset(self):
         if self.action == "list":
@@ -122,6 +124,7 @@ class CommentViewSet(
 ):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    permission_classes(OwnerOrReadOnly, )
 
     def get_queryset(self):
         if self.action == "list":
@@ -145,6 +148,7 @@ class MessageViewSet(
 ):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
+    permission_classes(OwnerOrReadOnly, )
 
     def get_queryset(self):
         if self.action == "list":
