@@ -34,6 +34,12 @@ class ProfileImageSerializer(serializers.ModelSerializer):
         fields = ["id", "photo"]
 
 
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ["id", "post", "content", "created_at"]
+
+
 class PostSerializer(serializers.ModelSerializer):
     like_count = serializers.SerializerMethodField()
 
@@ -45,10 +51,13 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ["id", "content", "image", "created_at", "like_count"]
 
 
-class CommentSerializer(serializers.ModelSerializer):
+class PostListSerializer(PostSerializer):
+    author = serializers.CharField(source="author.nickname", read_only=True)
+    comments = CommentSerializer(many=True, read_only=True)
+
     class Meta:
-        model = Comment
-        fields = ["id", "post", "content", "created_at"]
+        model = Post
+        fields = ["id", "author", "content", "image", "created_at", "like_count", "comments"]
 
 
 class LikeSerializer(serializers.ModelSerializer):
