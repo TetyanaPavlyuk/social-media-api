@@ -75,6 +75,9 @@ class Like(models.Model):
     )
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="likes")
 
+    class Meta:
+        unique_together = (("post", "owner"),)
+
 
 class Message(models.Model):
     sender = models.ForeignKey(

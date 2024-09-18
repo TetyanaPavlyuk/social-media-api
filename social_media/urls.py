@@ -5,7 +5,6 @@ from social_media.views import (
     ProfileViewSet,
     PostViewSet,
     CommentViewSet,
-    LikeViewSet,
     MessageViewSet,
 )
 
@@ -14,7 +13,6 @@ router = routers.DefaultRouter()
 router.register("profiles", ProfileViewSet)
 router.register("posts", PostViewSet)
 router.register("comments", CommentViewSet)
-router.register("likes", LikeViewSet)
 router.register("messages", MessageViewSet)
 
 urlpatterns = [path("", include(router.urls))]

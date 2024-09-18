@@ -80,6 +80,23 @@ class PostViewSet(
             ))
         return self.queryset
 
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="like",
+    )
+    def like(self, request, pk=None):
+        post = self.get_object()
+        user = request.user
+        owner = Profile.objects.get(user=user)
+
+        like, created = Like.objects.get_or_create(owner=owner, post=post)
+
+        if not created:
+            like.delete()
+            return Response({"detail": "Post unliked"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"detail": "Post liked"}, status=status.HTTP_201_CREATED)
+
 
 class CommentViewSet(
     mixins.CreateModelMixin,
@@ -96,23 +113,7 @@ class CommentViewSet(
         if self.action == "list":
             return (self.queryset
                     .select_related("author__user", "post")
-                    .prefetch_related("likes")
                     )
-        return self.queryset
-
-
-class LikeViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.DestroyModelMixin,
-    GenericViewSet,
-):
-    queryset = Like.objects.all()
-    serializer_class = LikeSerializer
-
-    def get_queryset(self):
-        if self.action == "list":
-            return self.queryset.select_related()
         return self.queryset
 
 
