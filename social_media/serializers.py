@@ -41,23 +41,38 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ["id", "content", "image", "created_at"]
+
+
+class PostListSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(source="author.nickname", read_only=True)
     like_count = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
 
     def get_like_count(self, obj):
         return obj.likes.count()
 
+    def get_comments_count(self, obj):
+        return obj.comments.count()
+
     class Meta:
         model = Post
-        fields = ["id", "content", "image", "created_at", "like_count"]
+        fields = ["id", "author", "content", "image", "created_at", "like_count", "comments_count"]
 
 
-class PostListSerializer(PostSerializer):
+class PostRetrieveSerializer(PostSerializer):
     author = serializers.CharField(source="author.nickname", read_only=True)
+    likes = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
 
+    def get_likes(self, obj):
+        return [like.author.nickname for like in obj.likes.all()]
+
     class Meta:
         model = Post
-        fields = ["id", "author", "content", "image", "created_at", "like_count", "comments"]
+        fields = ["id", "author", "content", "image", "created_at", "likes", "comments"]
 
 
 class LikeSerializer(serializers.ModelSerializer):

@@ -9,7 +9,7 @@ from social_media.serializers import (
     ProfileImageSerializer,
     PostSerializer,
     CommentSerializer,
-    MessageSerializer, PostListSerializer,
+    MessageSerializer, PostListSerializer, PostRetrieveSerializer,
 )
 
 
@@ -79,11 +79,15 @@ class PostViewSet(
                 "comments",
                 "likes"
             ))
+        if self.action == "retrieve":
+            return self.queryset.prefetch_related("likes__author")
         return self.queryset
 
     def get_serializer_class(self):
         if self.action == "list":
             return PostListSerializer
+        if self.action == "retrieve":
+            return PostRetrieveSerializer
         return PostSerializer
 
     def perform_create(self, serializer):
