@@ -12,12 +12,18 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "first_name",
             "last_name",
+            "password",
             "is_staff",
             "is_active",
         )
         read_only_fields = ("id", "is_staff", "is_active")
         extra_kwargs = {
             "email": {"required": False},
+            "password": {
+                "write_only": True,
+                "min_length": 8,
+                "style": {"input_type": "password"}
+            },
         }
 
     def create(self, validated_data):
