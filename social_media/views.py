@@ -1,3 +1,5 @@
+from gc import get_objects
+
 from rest_framework import mixins, status
 from rest_framework.decorators import action, permission_classes
 from rest_framework.exceptions import ValidationError
@@ -79,7 +81,7 @@ class ProfileViewSet(
         detail=True,
         url_path="upload-image",
     )
-    def upload_image(self, request, pk=None):
+    def upload_image(self, request):
         profile = self.get_object()
         serializer = self.get_serializer(profile, data=request.data)
         if serializer.is_valid():
@@ -93,7 +95,7 @@ class ProfileViewSet(
         url_path="follow",
         permission_classes=(IsAuthenticated,),
     )
-    def follow(self, request, pk=None):
+    def follow(self, request):
         profile_to_follow = self.get_object()
         user_profile = request.user.profile
 
@@ -121,7 +123,7 @@ class ProfileViewSet(
         url_path="unfollow",
         permission_classes=(IsAuthenticated,),
     )
-    def unfollow(self, request, pk=None):
+    def unfollow(self, request):
         profile_to_unfollow = self.get_object()
         user_profile = request.user.profile
 
@@ -203,6 +205,17 @@ class PostViewSet(
                 {"detail": "Post unliked"}, status=status.HTTP_204_NO_CONTENT
             )
         return Response({"detail": "Post liked"}, status=status.HTTP_201_CREATED)
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        url_path="liked-posts"
+    )
+    def liked_posts(self, request):
+        profile = request.user.profile
+        liked_posts = Post.objects.filter(likes__author=profile.id)
+        serializer = PostListSerializer(liked_posts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CommentViewSet(
