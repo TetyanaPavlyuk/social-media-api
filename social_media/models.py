@@ -14,7 +14,7 @@ def profile_image_path(instance: "Profile", filename: str) -> str:
 
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
-    nickname = models.CharField(max_length=255)
+    nickname = models.CharField(max_length=255, unique=True)
     bio = models.TextField(blank=True)
     photo = models.ImageField(null=True, blank=True, upload_to=profile_image_path)
     birth_date = models.DateField(null=True, blank=True)
