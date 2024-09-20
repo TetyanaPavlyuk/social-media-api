@@ -70,7 +70,6 @@ class ProfileRetrieveSerializer(ProfileSerializer):
     last_name = serializers.CharField(source="user.last_name")
     following = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
-    posts = PostSerializer(many=True, read_only=True)
 
     class Meta:
         model = Profile
@@ -84,7 +83,6 @@ class ProfileRetrieveSerializer(ProfileSerializer):
             "birth_date",
             "following",
             "followers",
-            "posts",
         ]
 
     def get_following(self, obj):

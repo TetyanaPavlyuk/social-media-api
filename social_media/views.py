@@ -39,15 +39,13 @@ class ProfileViewSet(
         last_name = self.request.query_params.get("last_name")
 
         if self.action == "list":
-            queryset = (self.queryset
-            .select_related("user")
-            .prefetch_related(
+            queryset = self.queryset.select_related("user").prefetch_related(
                 "posts__comments",
                 "posts__likes",
                 "sent_messages",
                 "following",
-                "followers"
-            ))
+                "followers",
+            )
         if self.action == "retrieve":
             queryset = self.queryset.select_related()
         else:
@@ -93,7 +91,7 @@ class ProfileViewSet(
         methods=["POST"],
         detail=True,
         url_path="follow",
-        permission_classes=(IsAuthenticated,)
+        permission_classes=(IsAuthenticated,),
     )
     def follow(self, request, pk=None):
         profile_to_follow = self.get_object()
@@ -102,13 +100,13 @@ class ProfileViewSet(
         if profile_to_follow == user_profile:
             return Response(
                 {"detail": "You can't follow yourself!"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if profile_to_follow in user_profile.following.all():
             return Response(
                 {"detail": "You already follow this user!"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         user_profile.following.add(profile_to_follow)
@@ -121,7 +119,7 @@ class ProfileViewSet(
         methods=["POST"],
         detail=True,
         url_path="unfollow",
-        permission_classes=(IsAuthenticated,)
+        permission_classes=(IsAuthenticated,),
     )
     def unfollow(self, request, pk=None):
         profile_to_unfollow = self.get_object()
@@ -130,13 +128,13 @@ class ProfileViewSet(
         if profile_to_unfollow == user_profile:
             return Response(
                 {"detail": "You can't unfollow yourself!"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if profile_to_unfollow not in user_profile.following.all():
             return Response(
                 {"detail": "You are not following this user!"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         user_profile.following.remove(profile_to_unfollow)
@@ -156,19 +154,25 @@ class PostViewSet(
 ):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes(OwnerOrReadOnly, )
+    permission_classes(
+        OwnerOrReadOnly,
+    )
 
     def get_queryset(self):
         if self.action == "list":
-            return (self.queryset
-                    .select_related("author__user")
-                    .prefetch_related(
-                "comments",
-                "likes"
-            ))
+            queryset = self.queryset.select_related("author__user").prefetch_related(
+                "comments", "likes"
+            )
         if self.action == "retrieve":
-            return self.queryset.prefetch_related("likes__author")
-        return self.queryset
+            queryset = self.queryset.prefetch_related("likes__author")
+        else:
+            queryset = self.queryset
+
+        profile = self.request.user.profile
+        following_profiles = profile.following.all()
+        queryset = queryset.filter(author__in=[profile.id] + [profile.id for profile in following_profiles])
+
+        return queryset.order_by("-created_at")
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -195,7 +199,9 @@ class PostViewSet(
 
         if not created:
             like.delete()
-            return Response({"detail": "Post unliked"}, status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {"detail": "Post unliked"}, status=status.HTTP_204_NO_CONTENT
+            )
         return Response({"detail": "Post liked"}, status=status.HTTP_201_CREATED)
 
 
@@ -209,13 +215,13 @@ class CommentViewSet(
 ):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes(OwnerOrReadOnly, )
+    permission_classes(
+        OwnerOrReadOnly,
+    )
 
     def get_queryset(self):
         if self.action == "list":
-            return (self.queryset
-                    .select_related("author__user", "post")
-                    )
+            return self.queryset.select_related("author__user", "post")
         return self.queryset
 
     def perform_create(self, serializer):
@@ -233,7 +239,9 @@ class MessageViewSet(
 ):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
-    permission_classes(OwnerOrReadOnly, )
+    permission_classes(
+        OwnerOrReadOnly,
+    )
 
     def get_queryset(self):
         if self.action == "list":
