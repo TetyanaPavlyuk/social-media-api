@@ -4,38 +4,6 @@ from rest_framework import serializers
 from social_media.models import Profile, Post, Comment, Like, Message
 
 
-class FollowSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ["id", "nickname"]
-
-class ProfileSerializer(serializers.ModelSerializer):
-    following = serializers.PrimaryKeyRelatedField(many=True, queryset=Profile.objects.all())
-    followers = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Profile
-        fields = ["id", "nickname", "bio", "photo", "birth_date", "following", "followers"]
-        read_only_fields = ["id", "followers"]
-
-    def update(self, instance, validated_data):
-        following_data = validated_data.get("following", None)
-
-        if following_data is not None:
-            instance.following.add(*following_data)
-
-        return super().update(instance, validated_data)
-
-    def get_followers(self, obj):
-        return FollowSerializer(obj.followers.all(), many=True).data
-
-
-class ProfileImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ["id", "photo"]
-
-
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
@@ -75,6 +43,72 @@ class PostRetrieveSerializer(PostSerializer):
     class Meta:
         model = Post
         fields = ["id", "author", "content", "image", "created_at", "likes", "comments"]
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    following = serializers.SerializerMethodField()
+    followers = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ["id", "nickname", "bio", "photo", "birth_date", "following", "followers"]
+        read_only_fields = ["id", "followers"]
+
+    def update(self, instance, validated_data):
+        following_data = validated_data.get("following", None)
+
+        if following_data is not None:
+            instance.following.add(*following_data)
+
+        return super().update(instance, validated_data)
+
+    def get_following(self, obj):
+        return [following.nickname for following in obj.following.all()]
+
+    def get_followers(self, obj):
+        return [followers.nickname for followers in obj.followers.all()]
+
+
+class ProfileListSerializer(ProfileSerializer):
+    following = serializers.SerializerMethodField()
+    followers = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Profile
+        fields = ["nickname", "bio", "photo", "following", "followers"]
+
+    def get_following(self, obj):
+        return obj.following.count()
+
+    def get_followers(self, obj):
+        return obj.followers.count()
+
+
+class ProfileRetrieveSerializer(ProfileSerializer):
+    first_name = serializers.CharField(source="user.first_name")
+    last_name = serializers.CharField(source="user.last_name")
+    posts = PostSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = [
+            "id",
+            "nickname",
+            "first_name",
+            "last_name",
+            "bio",
+            "photo",
+            "birth_date",
+            "following",
+            "followers",
+            "posts",
+        ]
+
+
+class ProfileImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ["id", "photo"]
 
 
 class LikeSerializer(serializers.ModelSerializer):

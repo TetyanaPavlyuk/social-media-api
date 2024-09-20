@@ -11,7 +11,11 @@ from social_media.serializers import (
     ProfileImageSerializer,
     PostSerializer,
     CommentSerializer,
-    MessageSerializer, PostListSerializer, PostRetrieveSerializer,
+    MessageSerializer,
+    PostListSerializer,
+    PostRetrieveSerializer,
+    ProfileListSerializer,
+    ProfileRetrieveSerializer,
 )
 
 
@@ -29,7 +33,7 @@ class ProfileViewSet(
 
     def get_queryset(self):
         """Retrieve the user's profiles with filter"""
-        username = self.request.query_params.get("username")
+        nickname = self.request.query_params.get("nickname")
         first_name = self.request.query_params.get("first_name")
         last_name = self.request.query_params.get("last_name")
 
@@ -43,11 +47,13 @@ class ProfileViewSet(
                 "following",
                 "followers"
             ))
+        if self.action == "retrieve":
+            queryset = self.queryset.select_related()
         else:
             queryset = self.queryset
 
-        if username:
-            queryset = queryset.filter(nickname__icontains=username)
+        if nickname:
+            queryset = queryset.filter(nickname__icontains=nickname)
         if first_name:
             queryset = queryset.filter(user__first_name__icontains=first_name)
         if last_name:
@@ -56,6 +62,10 @@ class ProfileViewSet(
         return queryset.distinct()
 
     def get_serializer_class(self):
+        if self.action == "list":
+            return ProfileListSerializer
+        if self.action == "retrieve":
+            return ProfileRetrieveSerializer
         if self.action == "upload_image":
             return ProfileImageSerializer
         return ProfileSerializer
