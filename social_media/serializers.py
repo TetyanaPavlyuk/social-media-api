@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from social_media.models import Profile, Post, Comment, Like, Message
@@ -46,27 +45,9 @@ class PostRetrieveSerializer(PostSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    following = serializers.SerializerMethodField()
-    followers = serializers.SerializerMethodField()
-
     class Meta:
         model = Profile
-        fields = ["id", "nickname", "bio", "photo", "birth_date", "following", "followers"]
-        read_only_fields = ["id", "followers"]
-
-    def update(self, instance, validated_data):
-        following_data = validated_data.get("following", None)
-
-        if following_data is not None:
-            instance.following.add(*following_data)
-
-        return super().update(instance, validated_data)
-
-    def get_following(self, obj):
-        return [following.nickname for following in obj.following.all()]
-
-    def get_followers(self, obj):
-        return [followers.nickname for followers in obj.followers.all()]
+        fields = ["id", "nickname", "bio", "photo", "birth_date"]
 
 
 class ProfileListSerializer(ProfileSerializer):
@@ -87,6 +68,8 @@ class ProfileListSerializer(ProfileSerializer):
 class ProfileRetrieveSerializer(ProfileSerializer):
     first_name = serializers.CharField(source="user.first_name")
     last_name = serializers.CharField(source="user.last_name")
+    following = serializers.SerializerMethodField()
+    followers = serializers.SerializerMethodField()
     posts = PostSerializer(many=True, read_only=True)
 
     class Meta:
@@ -103,6 +86,12 @@ class ProfileRetrieveSerializer(ProfileSerializer):
             "followers",
             "posts",
         ]
+
+    def get_following(self, obj):
+        return [following.nickname for following in obj.following.all()]
+
+    def get_followers(self, obj):
+        return [followers.nickname for followers in obj.followers.all()]
 
 
 class ProfileImageSerializer(serializers.ModelSerializer):

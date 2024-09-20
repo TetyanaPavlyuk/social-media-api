@@ -1,6 +1,7 @@
 from rest_framework import mixins, status
 from rest_framework.decorators import action, permission_classes
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -87,6 +88,62 @@ class ProfileViewSet(
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="follow",
+        permission_classes=(IsAuthenticated,)
+    )
+    def follow(self, request, pk=None):
+        profile_to_follow = self.get_object()
+        user_profile = request.user.profile
+
+        if profile_to_follow == user_profile:
+            return Response(
+                {"detail": "You can't follow yourself!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if profile_to_follow in user_profile.following.all():
+            return Response(
+                {"detail": "You already follow this user!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user_profile.following.add(profile_to_follow)
+        return Response(
+            {"detail": f"Successfully followed {profile_to_follow.nickname}"},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="unfollow",
+        permission_classes=(IsAuthenticated,)
+    )
+    def unfollow(self, request, pk=None):
+        profile_to_unfollow = self.get_object()
+        user_profile = request.user.profile
+
+        if profile_to_unfollow == user_profile:
+            return Response(
+                {"detail": "You can't unfollow yourself!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if profile_to_unfollow not in user_profile.following.all():
+            return Response(
+                {"detail": "You are not following this user!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user_profile.following.remove(profile_to_unfollow)
+        return Response(
+            {"detail": f"Successfully unfollowed {profile_to_unfollow.nickname}"},
+            status=status.HTTP_200_OK,
+        )
 
 
 class PostViewSet(
