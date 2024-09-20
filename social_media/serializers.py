@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from social_media.models import Profile, Post, Comment, Like, Message
@@ -14,7 +15,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["id", "user", "nickname", "bio", "photo", "birth_date", "following", "followers"]
+        fields = ["id", "nickname", "bio", "photo", "birth_date", "following", "followers"]
+        read_only_fields = ["id", "followers"]
 
     def update(self, instance, validated_data):
         following_data = validated_data.get("following", None)

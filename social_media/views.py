@@ -1,5 +1,6 @@
 from rest_framework import mixins, status
 from rest_framework.decorators import action, permission_classes
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -27,8 +28,13 @@ class ProfileViewSet(
     permission_classes = (OwnerOrReadOnlyProfile,)
 
     def get_queryset(self):
+        """Retrieve the user's profiles with filter"""
+        username = self.request.query_params.get("username")
+        first_name = self.request.query_params.get("first_name")
+        last_name = self.request.query_params.get("last_name")
+
         if self.action == "list":
-            return (self.queryset
+            queryset = (self.queryset
             .select_related("user")
             .prefetch_related(
                 "posts__comments",
@@ -37,7 +43,17 @@ class ProfileViewSet(
                 "following",
                 "followers"
             ))
-        return self.queryset
+        else:
+            queryset = self.queryset
+
+        if username:
+            queryset = queryset.filter(nickname__icontains=username)
+        if first_name:
+            queryset = queryset.filter(user__first_name__icontains=first_name)
+        if last_name:
+            queryset = queryset.filter(user__last_name__icontains=last_name)
+
+        return queryset.distinct()
 
     def get_serializer_class(self):
         if self.action == "upload_image":
@@ -45,6 +61,8 @@ class ProfileViewSet(
         return ProfileSerializer
 
     def perform_create(self, serializer):
+        if Profile.objects.filter(user=self.request.user).exists():
+            raise ValidationError("User already has profile")
         serializer.save(user=self.request.user)
 
     @action(
