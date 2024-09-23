@@ -1,5 +1,3 @@
-from gc import get_objects
-
 from rest_framework import mixins, status
 from rest_framework.decorators import action, permission_classes
 from rest_framework.exceptions import ValidationError
@@ -7,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from social_media.models import Profile, Post, Comment, Like, Message
+from social_media.models import Profile, Post, Comment, Like, Message, Tag
 from social_media.permissions import OwnerOrReadOnlyProfile, OwnerOrReadOnly
 from social_media.serializers import (
     ProfileSerializer,
@@ -18,7 +16,7 @@ from social_media.serializers import (
     PostListSerializer,
     PostRetrieveSerializer,
     ProfileListSerializer,
-    ProfileRetrieveSerializer,
+    ProfileRetrieveSerializer, TagSerializer,
 )
 
 
@@ -81,7 +79,7 @@ class ProfileViewSet(
         detail=True,
         url_path="upload-image",
     )
-    def upload_image(self, request):
+    def upload_image(self, request, pk=None):
         profile = self.get_object()
         serializer = self.get_serializer(profile, data=request.data)
         if serializer.is_valid():
@@ -95,7 +93,7 @@ class ProfileViewSet(
         url_path="follow",
         permission_classes=(IsAuthenticated,),
     )
-    def follow(self, request):
+    def follow(self, request, pk=None):
         profile_to_follow = self.get_object()
         user_profile = request.user.profile
 
@@ -123,7 +121,7 @@ class ProfileViewSet(
         url_path="unfollow",
         permission_classes=(IsAuthenticated,),
     )
-    def unfollow(self, request):
+    def unfollow(self, request, pk=None):
         profile_to_unfollow = self.get_object()
         user_profile = request.user.profile
 
@@ -172,7 +170,13 @@ class PostViewSet(
 
         profile = self.request.user.profile
         following_profiles = profile.following.all()
-        queryset = queryset.filter(author__in=[profile.id] + [profile.id for profile in following_profiles])
+        queryset = queryset.filter(
+            author__in=[profile.id] + [profile.id for profile in following_profiles]
+        )
+
+        tag_name = self.request.query_params.get("tag")
+        if tag_name:
+            queryset = queryset.filter(tags__name__iexact=tag_name)
 
         return queryset.order_by("-created_at")
 
@@ -206,12 +210,8 @@ class PostViewSet(
             )
         return Response({"detail": "Post liked"}, status=status.HTTP_201_CREATED)
 
-    @action(
-        methods=["GET"],
-        detail=False,
-        url_path="liked-posts"
-    )
-    def liked_posts(self, request):
+    @action(methods=["GET"], detail=False, url_path="liked")
+    def liked(self, request):
         profile = request.user.profile
         liked_posts = Post.objects.filter(likes__author=profile.id)
         serializer = PostListSerializer(liked_posts, many=True)
@@ -264,3 +264,12 @@ class MessageViewSet(
     def perform_create(self, serializer):
         author = Profile.objects.get(user=self.request.user)
         serializer.save(author=author)
+
+
+class TagViewSet(
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes(IsAuthenticated, )

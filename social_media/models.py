@@ -13,7 +13,9 @@ def profile_image_path(instance: "Profile", filename: str) -> str:
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile"
+    )
     nickname = models.CharField(max_length=255, unique=True)
     bio = models.TextField(blank=True)
     photo = models.ImageField(null=True, blank=True, upload_to=profile_image_path)
@@ -24,6 +26,13 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.nickname
+
+
+class Tag(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 def post_image_path(instance: "Post", filename: str) -> str:
@@ -37,6 +46,7 @@ class Post(models.Model):
     content = models.TextField()
     image = models.ImageField(null=True, blank=True, upload_to=post_image_path)
     created_at = models.DateTimeField(auto_now_add=True)
+    tags = models.ManyToManyField(Tag, blank=True)
 
     @property
     def like_count(self):
