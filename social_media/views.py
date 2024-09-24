@@ -1,4 +1,5 @@
 from django.db.models import Count
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import mixins, status
 from rest_framework.decorators import action, permission_classes
 from rest_framework.exceptions import ValidationError
@@ -145,6 +146,31 @@ class ProfileViewSet(
             status=status.HTTP_200_OK,
         )
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="nickname",
+                description="Filter by nickname",
+                required=False,
+                type=str
+            ),
+            OpenApiParameter(
+                name="first_name",
+                description="Filter by first name",
+                required=False,
+                type=str
+            ),
+            OpenApiParameter(
+                name="last_name",
+                description="Filter by last name",
+                required=False,
+                type=str
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class PostViewSet(
     mixins.CreateModelMixin,
@@ -227,6 +253,19 @@ class PostViewSet(
         liked_posts = Post.objects.filter(likes__author=profile.id)
         serializer = PostListSerializer(liked_posts, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="tag",
+                description="Filter by tag",
+                required=False,
+                type=str
+            )
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class CommentViewSet(
