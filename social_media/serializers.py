@@ -18,13 +18,14 @@ class TagSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     tags = serializers.ListField(
         child=serializers.CharField(max_length=100),
-        write_only=True
+        write_only=True,
+        required=False,
     )
     tags_display = TagSerializer(source="tags", many=True, read_only=True)
 
     class Meta:
         model = Post
-        fields = ["id", "content", "image", "created_at", "tags", "tags_display"]
+        fields = ["id", "content", "image", "created_at", "tags", "tags_display", "scheduled_at"]
 
     def create(self, validated_data):
         tags_data = validated_data.pop("tags", [])
@@ -35,27 +36,20 @@ class PostSerializer(serializers.ModelSerializer):
             post.tags.add(tag)
         return post
 
-    # def update(self, instance, validated_data):
-    #     tags_data = validated_data.pop("tags", [])
-    #     instance = super().update(instance, validated_data)
-    #     instance.tags.set(tags_data)
-    #     return instance
+    def update(self, post, validated_data):
+        tags_data = validated_data.pop("tags", [])
+        post = super().update(post, validated_data)
+        for tag_name in tags_data:
+            tag, created = Tag.objects.get_or_create(name=tag_name)
+            post.tags.add(tag)
+        return post
 
 
 class PostListSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source="author.nickname", read_only=True)
-    tags = serializers.SerializerMethodField()
-    like_count = serializers.SerializerMethodField()
-    comments_count = serializers.SerializerMethodField()
-
-    def get_tags(self, obj):
-        return [element.name for element in obj.tags.all()]
-
-    def get_like_count(self, obj):
-        return obj.likes.count()
-
-    def get_comments_count(self, obj):
-        return obj.comments.count()
+    tags = serializers.StringRelatedField(read_only=True, many=True, required=False)
+    like_count = serializers.IntegerField(read_only=True)
+    comments_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Post

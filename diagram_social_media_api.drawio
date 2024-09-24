@@ -52,7 +52,7 @@
         <mxCell id="wa5i-GCasmKYv-Ap6QYX-32" value="birth_date: date" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="wa5i-GCasmKYv-Ap6QYX-21" vertex="1">
           <mxGeometry y="210" width="150" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="wa5i-GCasmKYv-Ap6QYX-33" value="following: User" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="wa5i-GCasmKYv-Ap6QYX-21" vertex="1">
+        <mxCell id="wa5i-GCasmKYv-Ap6QYX-33" value="following: Profile" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;" parent="wa5i-GCasmKYv-Ap6QYX-21" vertex="1">
           <mxGeometry y="240" width="150" height="30" as="geometry" />
         </mxCell>
         <mxCell id="wa5i-GCasmKYv-Ap6QYX-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1.007;entryY=0.048;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="wa5i-GCasmKYv-Ap6QYX-12" target="wa5i-GCasmKYv-Ap6QYX-21" edge="1">

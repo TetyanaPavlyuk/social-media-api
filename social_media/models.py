@@ -47,10 +47,8 @@ class Post(models.Model):
     image = models.ImageField(null=True, blank=True, upload_to=post_image_path)
     created_at = models.DateTimeField(auto_now_add=True)
     tags = models.ManyToManyField(Tag, blank=True)
-
-    @property
-    def like_count(self):
-        return self.likes.count()
+    scheduled_at = models.DateTimeField(null=True, blank=True)
+    is_published = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.author}: {self.content[:30]}"

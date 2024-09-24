@@ -1,3 +1,4 @@
+from django.db.models import Count
 from rest_framework import mixins, status
 from rest_framework.decorators import action, permission_classes
 from rest_framework.exceptions import ValidationError
@@ -18,6 +19,7 @@ from social_media.serializers import (
     ProfileListSerializer,
     ProfileRetrieveSerializer, TagSerializer,
 )
+from social_media.tasks import publish_scheduled_posts
 
 
 class ProfileViewSet(
@@ -46,7 +48,7 @@ class ProfileViewSet(
                 "following",
                 "followers",
             )
-        if self.action == "retrieve":
+        elif self.action == "retrieve":
             queryset = self.queryset.select_related()
         else:
             queryset = self.queryset
@@ -161,10 +163,10 @@ class PostViewSet(
     def get_queryset(self):
         if self.action == "list":
             queryset = self.queryset.select_related("author__user").prefetch_related(
-                "comments", "likes"
+                "comments", "likes", "tags"
             )
-        if self.action == "retrieve":
-            queryset = self.queryset.prefetch_related("likes__author")
+        elif self.action == "retrieve":
+            queryset = self.queryset.prefetch_related("likes__author", "tags")
         else:
             queryset = self.queryset
 
@@ -178,6 +180,10 @@ class PostViewSet(
         if tag_name:
             queryset = queryset.filter(tags__name__iexact=tag_name)
 
+        queryset = queryset.filter(is_published=True)
+
+        queryset = queryset.annotate(like_count=Count("likes")).annotate(comments_count=Count("comments"))
+
         return queryset.order_by("-created_at")
 
     def get_serializer_class(self):
@@ -189,7 +195,12 @@ class PostViewSet(
 
     def perform_create(self, serializer):
         author = Profile.objects.get(user=self.request.user)
-        serializer.save(author=author)
+        post = serializer.save(author=author)
+        if post.scheduled_at:
+            publish_scheduled_posts.apply_async((post.id, ), eta=post.scheduled_at)
+        else:
+            post.is_published = True
+            post.save()
 
     @action(
         methods=["POST"],
