@@ -18,7 +18,7 @@ from social_media.serializers import (
     PostListSerializer,
     PostRetrieveSerializer,
     ProfileListSerializer,
-    ProfileRetrieveSerializer, TagSerializer,
+    ProfileRetrieveSerializer, TagSerializer, ProfileFollowSerializer, ProfileUnfollowSerializer,
 )
 from social_media.tasks import publish_scheduled_posts
 
@@ -98,21 +98,14 @@ class ProfileViewSet(
     )
     def follow(self, request, pk=None):
         profile_to_follow = self.get_object()
-        user_profile = request.user.profile
 
-        if profile_to_follow == user_profile:
-            return Response(
-                {"detail": "You can't follow yourself!"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        serializer = ProfileFollowSerializer(
+            data={"profile_to_follow": profile_to_follow.id},
+            context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
-        if profile_to_follow in user_profile.following.all():
-            return Response(
-                {"detail": "You already follow this user!"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        user_profile.following.add(profile_to_follow)
         return Response(
             {"detail": f"Successfully followed {profile_to_follow.nickname}"},
             status=status.HTTP_200_OK,
@@ -126,21 +119,14 @@ class ProfileViewSet(
     )
     def unfollow(self, request, pk=None):
         profile_to_unfollow = self.get_object()
-        user_profile = request.user.profile
 
-        if profile_to_unfollow == user_profile:
-            return Response(
-                {"detail": "You can't unfollow yourself!"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        serializer = ProfileUnfollowSerializer(
+            data={"profile_to_unfollow": profile_to_unfollow.id},
+            context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
-        if profile_to_unfollow not in user_profile.following.all():
-            return Response(
-                {"detail": "You are not following this user!"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        user_profile.following.remove(profile_to_unfollow)
         return Response(
             {"detail": f"Successfully unfollowed {profile_to_unfollow.nickname}"},
             status=status.HTTP_200_OK,

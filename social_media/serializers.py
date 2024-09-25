@@ -85,7 +85,8 @@ class PostRetrieveSerializer(PostSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ["id", "nickname", "bio", "photo", "birth_date"]
+        fields = ["id", "user", "nickname", "bio", "photo", "birth_date"]
+        read_only_fields = ["id", "user"]
 
 
 class ProfileListSerializer(ProfileSerializer):
@@ -134,6 +135,60 @@ class ProfileImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ["id", "photo"]
+
+
+class ProfileFollowSerializer(serializers.ModelSerializer):
+    profile_to_follow = serializers.PrimaryKeyRelatedField(
+        queryset=Profile.objects.all()
+    )
+
+    class Meta:
+        model = Profile
+        fields = ["profile_to_follow"]
+
+    def validate_profile_to_follow(self, profile_to_follow):
+        user_profile = self.context["request"].user.profile
+
+        if profile_to_follow == user_profile:
+            raise serializers.ValidationError("You can't follow yourself!")
+
+        if profile_to_follow in user_profile.following.all():
+            raise serializers.ValidationError("You already follow this user!")
+
+        return profile_to_follow
+
+    def save(self, **kwargs):
+        user_profile = self.context["request"].user.profile
+        profile_to_follow = self.validated_data["profile_to_follow"]
+        user_profile.following.add(profile_to_follow)
+        return profile_to_follow
+
+
+class ProfileUnfollowSerializer(serializers.ModelSerializer):
+    profile_to_unfollow = serializers.PrimaryKeyRelatedField(
+        queryset=Profile.objects.all()
+    )
+
+    class Meta:
+        model = Profile
+        fields = ["profile_to_unfollow"]
+
+    def validate_profile_to_unfollow(self, profile_to_unfollow):
+        user_profile = self.context["request"].user.profile
+
+        if profile_to_unfollow == user_profile:
+            raise serializers.ValidationError("You can't unfollow yourself!")
+
+        if profile_to_unfollow not in user_profile.following.all():
+            raise serializers.ValidationError("You are not following this user!")
+
+        return profile_to_unfollow
+
+    def save(self, **kwargs):
+        user_profile = self.context["request"].user.profile
+        profile_to_unfollow = self.validated_data["profile_to_unfollow"]
+        user_profile.following.remove(profile_to_unfollow)
+        return profile_to_unfollow
 
 
 class LikeSerializer(serializers.ModelSerializer):
