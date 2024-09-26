@@ -18,8 +18,12 @@ from social_media.serializers import (
     PostListSerializer,
     PostRetrieveSerializer,
     ProfileListSerializer,
-    ProfileRetrieveSerializer, TagSerializer, ProfileFollowSerializer, ProfileUnfollowSerializer, MessageListSerializer,
-    CommentListSerializer, CommentListForUserSerializer,
+    ProfileRetrieveSerializer,
+    TagSerializer,
+    ProfileFollowSerializer,
+    ProfileUnfollowSerializer,
+    MessageListSerializer,
+    CommentListForUserSerializer,
 )
 from social_media.tasks import publish_scheduled_posts
 
@@ -102,7 +106,7 @@ class ProfileViewSet(
 
         serializer = ProfileFollowSerializer(
             data={"profile_to_follow": profile_to_follow.id},
-            context={"request": request}
+            context={"request": request},
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -123,13 +127,14 @@ class ProfileViewSet(
 
         serializer = ProfileUnfollowSerializer(
             data={"profile_to_unfollow": profile_to_unfollow.id},
-            context={"request": request}
+            context={"request": request},
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
         return Response(
-            {"detail": f"Successfully unfollowed {profile_to_unfollow.nickname}"},
+            {"detail": f"Successfully unfollowed "
+                       f"{profile_to_unfollow.nickname}"},
             status=status.HTTP_200_OK,
         )
 
@@ -139,20 +144,20 @@ class ProfileViewSet(
                 name="nickname",
                 description="Filter by nickname",
                 required=False,
-                type=str
+                type=str,
             ),
             OpenApiParameter(
                 name="first_name",
                 description="Filter by first name",
                 required=False,
-                type=str
+                type=str,
             ),
             OpenApiParameter(
                 name="last_name",
                 description="Filter by last name",
                 required=False,
-                type=str
-            )
+                type=str,
+            ),
         ]
     )
     def list(self, request, *args, **kwargs):
@@ -175,18 +180,23 @@ class PostViewSet(
 
     def get_queryset(self):
         if self.action == "list":
-            queryset = self.queryset.select_related("author__user").prefetch_related(
-                "comments", "likes", "tags"
-            )
+            queryset = (self.queryset
+                        .select_related("author__user")
+                        .prefetch_related("comments", "likes", "tags"))
         elif self.action == "retrieve":
-            queryset = self.queryset.prefetch_related("likes__author", "tags", "comments__author")
+            queryset = self.queryset.prefetch_related(
+                "likes__author", "tags", "comments__author"
+            )
         else:
             queryset = self.queryset
 
         profile = self.request.user.profile
         following_profiles = profile.following.all()
         queryset = queryset.filter(
-            author__in=[profile.id] + [profile.id for profile in following_profiles]
+            author__in=(
+                    [profile.id]
+                    + [profile.id for profile in following_profiles]
+            )
         )
 
         tag_name = self.request.query_params.get("tag")
@@ -195,7 +205,9 @@ class PostViewSet(
 
         queryset = queryset.filter(is_published=True)
 
-        queryset = queryset.annotate(like_count=Count("likes")).annotate(comments_count=Count("comments"))
+        queryset = queryset.annotate(like_count=Count("likes")).annotate(
+            comments_count=Count("comments")
+        )
 
         return queryset.order_by("-created_at")
 
@@ -210,7 +222,10 @@ class PostViewSet(
         author = Profile.objects.get(user=self.request.user)
         post = serializer.save(author=author)
         if post.scheduled_at:
-            publish_scheduled_posts.apply_async((post.id, ), eta=post.scheduled_at)
+            publish_scheduled_posts.apply_async(
+                (post.id,),
+                eta=post.scheduled_at
+            )
         else:
             post.is_published = True
             post.save()
@@ -232,7 +247,10 @@ class PostViewSet(
             return Response(
                 {"detail": "Post unliked"}, status=status.HTTP_204_NO_CONTENT
             )
-        return Response({"detail": "Post liked"}, status=status.HTTP_201_CREATED)
+        return Response(
+            {"detail": "Post liked"},
+            status=status.HTTP_201_CREATED
+        )
 
     @action(methods=["GET"], detail=False, url_path="liked")
     def liked(self, request):
@@ -318,4 +336,6 @@ class TagViewSet(
 ):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes(IsAuthenticated, )
+    permission_classes(
+        IsAuthenticated,
+    )

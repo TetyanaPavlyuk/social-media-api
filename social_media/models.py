@@ -14,11 +14,17 @@ def profile_image_path(instance: "Profile", filename: str) -> str:
 
 class Profile(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="profile"
     )
     nickname = models.CharField(max_length=255, unique=True)
     bio = models.TextField(blank=True)
-    photo = models.ImageField(null=True, blank=True, upload_to=profile_image_path)
+    photo = models.ImageField(
+        null=True,
+        blank=True,
+        upload_to=profile_image_path
+    )
     birth_date = models.DateField(null=True, blank=True)
     following = models.ManyToManyField(
         "self", related_name="followers", symmetrical=False
@@ -42,7 +48,11 @@ def post_image_path(instance: "Post", filename: str) -> str:
 
 
 class Post(models.Model):
-    author = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="posts")
+    author = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name="posts"
+    )
     content = models.TextField()
     image = models.ImageField(null=True, blank=True, upload_to=post_image_path)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -58,7 +68,9 @@ class Post(models.Model):
 
 
 class Comment(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, related_name="comments"
+    )
     author = models.ForeignKey(
         Profile, on_delete=models.CASCADE, related_name="comments"
     )
@@ -78,9 +90,17 @@ class Comment(models.Model):
 
 class Like(models.Model):
     post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, null=True, blank=True, related_name="likes"
+        Post,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="likes"
     )
-    author = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="likes")
+    author = models.ForeignKey(
+        Profile,
+        on_delete=models.CASCADE,
+        related_name="likes"
+    )
 
     class Meta:
         unique_together = (("post", "author"),)

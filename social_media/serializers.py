@@ -11,6 +11,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class CommentListSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source="author.nickname")
+
     class Meta:
         model = Comment
         fields = ["author", "content", "created_at"]
@@ -18,6 +19,7 @@ class CommentListSerializer(serializers.ModelSerializer):
 
 class CommentListForUserSerializer(serializers.ModelSerializer):
     post = serializers.ReadOnlyField(source="post.content")
+
     class Meta:
         model = Comment
         fields = ["post", "content", "created_at"]
@@ -39,7 +41,15 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ["id", "content", "image", "created_at", "tags", "tags_display", "scheduled_at"]
+        fields = [
+            "id",
+            "content",
+            "image",
+            "created_at",
+            "tags",
+            "tags_display",
+            "scheduled_at",
+        ]
 
     def create(self, validated_data):
         tags_data = validated_data.pop("tags", [])
@@ -61,7 +71,11 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostListSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source="author.nickname", read_only=True)
-    tags = serializers.StringRelatedField(read_only=True, many=True, required=False)
+    tags = serializers.StringRelatedField(
+        read_only=True,
+        many=True,
+        required=False
+    )
     like_count = serializers.IntegerField(read_only=True)
     comments_count = serializers.IntegerField(read_only=True)
 
@@ -93,7 +107,16 @@ class PostRetrieveSerializer(PostSerializer):
 
     class Meta:
         model = Post
-        fields = ["id", "author", "content", "image", "created_at", "tags", "likes", "comments"]
+        fields = [
+            "id",
+            "author",
+            "content",
+            "image",
+            "created_at",
+            "tags",
+            "likes",
+            "comments",
+        ]
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -194,7 +217,9 @@ class ProfileUnfollowSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("You can't unfollow yourself!")
 
         if profile_to_unfollow not in user_profile.following.all():
-            raise serializers.ValidationError("You are not following this user!")
+            raise serializers.ValidationError(
+                "You are not following this user!"
+            )
 
         return profile_to_unfollow
 

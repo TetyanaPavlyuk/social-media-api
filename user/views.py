@@ -1,7 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken, Token, AccessToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from user.serializers import UserSerializer, ChangePasswordSerializer
 
@@ -29,7 +29,8 @@ class ChangePasswordView(generics.UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(
-            {"detail": "Change password successfully."}, status=status.HTTP_200_OK
+            {"detail": "Change password successfully."},
+            status=status.HTTP_200_OK
         )
 
 
@@ -42,4 +43,7 @@ class LogoutView(APIView):
                 token.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
