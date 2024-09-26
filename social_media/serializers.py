@@ -85,7 +85,7 @@ class PostRetrieveSerializer(PostSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ["id", "user", "nickname", "bio", "photo", "birth_date"]
+        fields = ["id", "user", "nickname", "bio", "birth_date"]
         read_only_fields = ["id", "user"]
 
 
