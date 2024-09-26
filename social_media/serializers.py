@@ -9,6 +9,20 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ["id", "post", "content", "created_at"]
 
 
+class CommentListSerializer(serializers.ModelSerializer):
+    author = serializers.ReadOnlyField(source="author.nickname")
+    class Meta:
+        model = Comment
+        fields = ["author", "content", "created_at"]
+
+
+class CommentListForUserSerializer(serializers.ModelSerializer):
+    post = serializers.ReadOnlyField(source="post.content")
+    class Meta:
+        model = Comment
+        fields = ["post", "content", "created_at"]
+
+
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
@@ -69,7 +83,7 @@ class PostRetrieveSerializer(PostSerializer):
     author = serializers.CharField(source="author.nickname", read_only=True)
     tags = serializers.SerializerMethodField()
     likes = serializers.SerializerMethodField()
-    comments = CommentSerializer(many=True, read_only=True)
+    comments = CommentListSerializer(many=True, read_only=True)
 
     def get_tags(self, obj):
         return [element.name for element in obj.tags.all()]
@@ -201,3 +215,7 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ["id", "recipient", "content", "created_at"]
+
+
+class MessageListSerializer(MessageSerializer):
+    recipient = serializers.CharField(source="recipient.nickname")

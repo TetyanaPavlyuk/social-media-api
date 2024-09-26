@@ -18,7 +18,8 @@ from social_media.serializers import (
     PostListSerializer,
     PostRetrieveSerializer,
     ProfileListSerializer,
-    ProfileRetrieveSerializer, TagSerializer, ProfileFollowSerializer, ProfileUnfollowSerializer,
+    ProfileRetrieveSerializer, TagSerializer, ProfileFollowSerializer, ProfileUnfollowSerializer, MessageListSerializer,
+    CommentListSerializer, CommentListForUserSerializer,
 )
 from social_media.tasks import publish_scheduled_posts
 
@@ -178,7 +179,7 @@ class PostViewSet(
                 "comments", "likes", "tags"
             )
         elif self.action == "retrieve":
-            queryset = self.queryset.prefetch_related("likes__author", "tags")
+            queryset = self.queryset.prefetch_related("likes__author", "tags", "comments__author")
         else:
             queryset = self.queryset
 
@@ -257,7 +258,6 @@ class PostViewSet(
 class CommentViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     GenericViewSet,
@@ -270,8 +270,13 @@ class CommentViewSet(
 
     def get_queryset(self):
         if self.action == "list":
-            return self.queryset.select_related("author__user", "post")
+            return self.queryset.select_related("author__user", "post__author")
         return self.queryset
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return CommentListForUserSerializer
+        return CommentSerializer
 
     def perform_create(self, serializer):
         author = Profile.objects.get(user=self.request.user)
@@ -296,6 +301,11 @@ class MessageViewSet(
         if self.action == "list":
             return self.queryset.select_related()
         return self.queryset
+
+    def get_serializer_class(self):
+        if self.action in ["list", "retrieve"]:
+            return MessageListSerializer
+        return MessageSerializer
 
     def perform_create(self, serializer):
         author = Profile.objects.get(user=self.request.user)
